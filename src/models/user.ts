@@ -1,12 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { users } from '../db/store';
-
-export interface User {
-  id: string;
-  username: string;
-  age: number;
-  hobbies: string[];
-}
+import { User, UserPayload } from '../types/user.types';
 
 export const createUser = (
   username: string,
@@ -34,7 +28,7 @@ export const getUserById = (id: string): User | undefined => {
 
 export const updateUser = (
   id: string,
-  data: Partial<Omit<User, 'id'>>
+  data: Partial<UserPayload>
 ): User | undefined => {
   const user = users.find((user) => user.id === id);
   if (!user) return undefined;
