@@ -1,13 +1,24 @@
-import http from 'http';
+import dotenv from 'dotenv';
+import http from 'node:http';
+import { HttpMethods } from './types/http-methods';
+import { createUser, getUsers } from './models/user';
 
-const hostname = 'localhost';
-const port = 3000;
+dotenv.config();
 
-const server = http.createServer((req, res) => {
-  console.log(req);
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, world!\n');
+const hostname: string = 'localhost';
+const port: number = Number(process.env.PORT) || 5000;
+
+const server = http.createServer();
+
+server.on('request', (req, res) => {
+  const method = req.method;
+
+  if (method === HttpMethods.GET) {
+    createUser('NewUser', 25, ['coding']);
+    const users = getUsers();
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify(users));
+  }
 });
 
 server.listen(port, hostname, () => {
