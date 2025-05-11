@@ -12,8 +12,8 @@ export const getRequestBody = async <T>(req: IncomingMessage): Promise<T> => {
       try {
         const parsed = JSON.parse(body);
         resolve(parsed);
-      } catch {
-        reject(new Error('Invalid JSON'));
+      } catch (error) {
+        reject(error);
       }
     });
   });

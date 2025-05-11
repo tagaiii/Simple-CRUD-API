@@ -29,9 +29,15 @@ export const createUserController = async (
     res.end(JSON.stringify(newUser));
     return;
   } catch (error) {
-    res.writeHead(400, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: (error as Error).message }));
-    return;
+    if (error instanceof SyntaxError) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid JSON' }));
+      return;
+    } else {
+      res.writeHead(500, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Internal server error' }));
+      return;
+    }
   }
 };
 
@@ -39,10 +45,16 @@ export const getUsersController = (
   _req: IncomingMessage,
   res: ServerResponse
 ) => {
-  const users = getUsers();
-  res.writeHead(200, { 'Content-type': 'application/json' });
-  res.end(JSON.stringify(users));
-  return;
+  try {
+    const users = getUsers();
+    res.writeHead(200, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify(users));
+    return;
+  } catch {
+    res.writeHead(500, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify({ message: 'Internal server error' }));
+    return;
+  }
 };
 
 export const getUserByIdController = (
@@ -50,22 +62,28 @@ export const getUserByIdController = (
   res: ServerResponse,
   id: string
 ) => {
-  if (!validate(id)) {
-    res.writeHead(400, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: 'Invalid user ID' }));
+  try {
+    if (!validate(id)) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid user ID' }));
+      return;
+    }
+
+    const user = getUserById(id);
+    if (!user) {
+      res.writeHead(404, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'User not found' }));
+      return;
+    }
+
+    res.writeHead(200, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify(user));
+    return;
+  } catch {
+    res.writeHead(500, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify({ message: 'Internal server error' }));
     return;
   }
-
-  const user = getUserById(id);
-  if (!user) {
-    res.writeHead(404, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: 'User not found' }));
-    return;
-  }
-
-  res.writeHead(200, { 'Content-type': 'application/json' });
-  res.end(JSON.stringify(user));
-  return;
 };
 
 export const updateUserController = async (
@@ -73,13 +91,13 @@ export const updateUserController = async (
   res: ServerResponse,
   id: string
 ) => {
-  if (!validate(id)) {
-    res.writeHead(400, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: 'Invalid user ID' }));
-    return;
-  }
-
   try {
+    if (!validate(id)) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid user ID' }));
+      return;
+    }
+
     const payload = await getRequestBody<Partial<UserPayload>>(req);
     const updatedUser = updateUser(id, payload);
 
@@ -93,8 +111,13 @@ export const updateUserController = async (
     res.end(JSON.stringify(updatedUser));
     return;
   } catch (error) {
-    res.writeHead(400, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: (error as Error).message }));
+    if (error instanceof SyntaxError) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: (error as Error).message }));
+      return;
+    }
+    res.writeHead(500, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify({ message: 'Internal server error' }));
     return;
   }
 };
@@ -104,21 +127,27 @@ export const deleteUserController = (
   res: ServerResponse,
   id: string
 ) => {
-  if (!validate(id)) {
-    res.writeHead(400, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: 'Invalid user ID' }));
+  try {
+    if (!validate(id)) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid user ID' }));
+      return;
+    }
+
+    const isDeleted = deleteUser(id);
+
+    if (!isDeleted) {
+      res.writeHead(404, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'User not found' }));
+      return;
+    }
+
+    res.writeHead(204, { 'Content-type': 'application/json' });
+    res.end();
+    return;
+  } catch {
+    res.writeHead(500, { 'Content-type': 'application/json' });
+    res.end(JSON.stringify({ message: 'Internal server error' }));
     return;
   }
-
-  const isDeleted = deleteUser(id);
-
-  if (!isDeleted) {
-    res.writeHead(404, { 'Content-type': 'application/json' });
-    res.end(JSON.stringify({ message: 'User not found' }));
-    return;
-  }
-
-  res.writeHead(204, { 'Content-type': 'application/json' });
-  res.end();
-  return;
 };
