@@ -42,4 +42,7 @@ export const userRouter = (req: IncomingMessage, res: ServerResponse) => {
   ) {
     return deleteUserController(req, res, id);
   }
+
+  res.writeHead(404, { 'Content-type': 'application/json' });
+  res.end(JSON.stringify({ message: 'Page not found' }));
 };
