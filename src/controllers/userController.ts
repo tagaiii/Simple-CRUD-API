@@ -98,8 +98,14 @@ export const updateUserController = async (
       return;
     }
 
-    const payload = await getRequestBody<Partial<UserPayload>>(req);
-    const updatedUser = updateUser(id, payload);
+    const { username, age, hobbies } =
+      await getRequestBody<Partial<UserPayload>>(req);
+    if (!isValidUserPayload({ username, age, hobbies })) {
+      res.writeHead(400, { 'Content-type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Invalid user data' }));
+      return;
+    }
+    const updatedUser = updateUser(id, { username, age, hobbies });
 
     if (!updatedUser) {
       res.writeHead(404, { 'Content-type': 'application/json' });
