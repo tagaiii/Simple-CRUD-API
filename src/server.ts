@@ -5,7 +5,7 @@ import { userRouter } from './routes/userRouter';
 dotenv.config();
 
 const hostname: string = 'localhost';
-const port: number = Number(process.env.PORT) || 5000;
+const port: number = Number(process.env.BASE_PORT) || 3000;
 
 const server = http.createServer(userRouter);
 
