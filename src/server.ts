@@ -1,14 +1,13 @@
-import http from 'http';
+import dotenv from 'dotenv';
+import http from 'node:http';
+import { userRouter } from './routes/userRouter';
 
-const hostname = 'localhost';
-const port = 3000;
+dotenv.config();
 
-const server = http.createServer((req, res) => {
-  console.log(req);
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, world!\n');
-});
+const hostname: string = 'localhost';
+const port: number = Number(process.env.BASE_PORT) || 3000;
+
+const server = http.createServer(userRouter);
 
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
